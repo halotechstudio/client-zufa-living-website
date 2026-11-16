@@ -289,8 +289,12 @@ slab(P, "ClubLawn", offset(club_poly, 1.5), 0.0, 0.42, M['lawn'])
 E = S['entrance']
 ex, ey, erz = E['pos'][0], E['pos'][1], E['rotZ']
 R = Matrix.Rotation(erz, 3, 'Z')
-local = [(0, -18), (0, 0), (0, 40), (-6, 120), (-30, 260), (-80, 520), (-150, 900)]   # website entrance-local (x, z)
-ctrl = [R @ Vector((x, -z, 0)) + Vector((ex, ey, 0)) for x, z in local]
+# Client corrections: 13 Nov 2026, the approach runs 90 deg anticlockwise from the old heading (south, not west);
+# 17 Nov 2026 (Layout L1, drawing AR-001), it runs straight south from the gate. Same geometry as fix_layout_l1.py.
+d0 = R @ Vector((0, -1, 0))
+d1 = Vector((-d0.y, d0.x, 0))
+ctrl = [Vector((ex, ey, 0)) + d0 * a + d1 * b for a, b in
+        [(0, -14), (0, 0), (0, 60), (0, 200), (0, 420), (0, 700), (0, 950)]]
 cu = bpy.data.curves.new("BoulevardPath", 'CURVE')
 cu.dimensions = '3D'
 sp = cu.splines.new('POLY')
@@ -341,9 +345,9 @@ for s in (-1, 1):   # painted edge lines
 
 # ---------------------------------------------------------------- 4. entrance and clubhouse
 A = scoll("Site_Architecture")
-inst(A, "Entrance", "Entrance", (ex, ey, 0.0), erz)
+inst(A, "Entrance", "Entrance", (ex, ey, 0.0), erz + math.pi / 2)   # faces down the road (Layout L1)
 C = S['club']
-inst(A, "Clubhouse", "Clubhouse", (C['pos'][0], C['pos'][1], 0.42), C['rotZ'])
+inst(A, "Clubhouse", "Clubhouse", (C['pos'][0], C['pos'][1], 0.42), C['rotZ'] + math.pi)   # client: faces the opposite way
 
 # ---------------------------------------------------------------- 5. estates: villas facing their roads, driveways, gardens, farm plots
 H = scoll("Site_Homes")
