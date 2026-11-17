@@ -1,9 +1,7 @@
-// ZUFA Living — one seamless scroll in the brochure's language. Motion is time based and short (reveals, the 3D lift);
-// the only scroll-linked things are cheap transforms (image depth, the page tone), so the scroll itself stays smooth.
+// ZUFA Living — one seamless scroll in the brochure's language. Motion is time based and short (reveals, story steps,
+// the 3D lift); the only scroll-linked things are cheap (image depth, the page tone), so the scroll itself stays smooth.
 import { Plan, View3D } from './plan.js';
 import { PLOTS } from './site-data.js';
-import { Turntable } from './turntable.js';
-import { Air } from './air.js';
 
 const CONFIG = { email: 'zufaliving@gmail.com', phone: '+91 98850 33844' };
 const $ = (s, r = document) => r.querySelector(s);
@@ -55,9 +53,17 @@ const phs = $$('[data-ph]'), visible = new Set();
 const vio = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)), { rootMargin: '20% 0px' });
 phs.forEach(p => vio.observe(p));
 
-let air = null;
 const hero = $('.hero'), heroMedia = $('[data-hero]'), heroCopy = $('.hero__copy');
-let lastTone = -1, lastNav = '';
+let lastTone = -1, lastNav = '', lastY = 0;
+
+/* ---------------- stories (the plan, the setting): steps switch on scroll, but every step animates on its own clock ---------------- */
+const stories = $$('[data-story]').map(el => ({ el, n: +el.dataset.story, step: -2, line: el.querySelector('.story__line'), beats: [...el.querySelectorAll('.beat')] }));
+function setStep(s, step) {
+  s.step = step;
+  for (let k = 0; k < s.n; k++) { s.el.classList.toggle(`at-${k}`, k <= step); s.el.classList.toggle(`st-${k}`, k === step); }
+  s.beats.forEach(b => b.classList.toggle('is-on', +b.dataset.b === Math.max(0, step)));
+  s.el.dispatchEvent(new CustomEvent('step', { detail: step }));
+}
 function frame() {
   const y = sy(), vh = innerHeight;
   // page tone at the centre of the screen; the nav reads the tone under itself
@@ -68,25 +74,22 @@ function frame() {
   const nt = secs[ni].ink ? 'ink' : 'stone';
   if (nt !== lastNav) { nav.dataset.t = nt; lastNav = nt; }
   nav.classList.toggle('is-scrolled', y > vh * 0.6);
-  // hero: you drive in through the gate (the photograph comes toward you, the title lifts away)
+  // the nav steps aside while you read and comes back the moment you scroll up
+  if (y > vh && y - lastY > 6) nav.classList.add('is-away'); else if (lastY - y > 6 || y < vh) nav.classList.remove('is-away');
+  lastY = y;
+  // hero: the gate drifts gently as you move in
   if (y < vh * 1.2) {
     const k = clamp(y / vh);
-    heroMedia.style.transform = `translate3d(0,${(y * 0.22).toFixed(1)}px,0) scale(${(1 + k * 0.32).toFixed(4)})`; heroMedia.style.opacity = (1 - k * .55).toFixed(3);
+    heroMedia.style.transform = `translate3d(0,${(y * 0.28).toFixed(1)}px,0) scale(${(1 + k * 0.05).toFixed(4)})`;
     heroCopy.style.opacity = (1 - k * 1.6).toFixed(3); heroCopy.style.transform = `translate3d(0,${(-y * 0.12).toFixed(1)}px,0)`;
   }
-  // every page settles back in depth as the next one rises over it: one continuous surface, no cuts
-  if (!reduce && !document.body.classList.contains('is-3d')) for (const s of secs) {
-    if (s.el === hero) continue;
-    const bottom = s.top + s.h - y;                                   // layout position (unaffected by our own transform)
-    const leave = bottom < vh && bottom > 0 ? Math.min(1, 1 - bottom / vh) : bottom <= 0 ? 1 : 0;
-    if (leave === s.leave) continue; s.leave = leave;
-    if (leave <= 0) { s.el.style.transform = ''; s.el.style.opacity = ''; continue; }
-    const e = leave * leave * (3 - 2 * leave);
-    s.el.style.transform = phone() ? `translate3d(0,${(e * vh * .08).toFixed(1)}px,0) scale(${(1 - e * .04).toFixed(4)})`
-      : `perspective(1600px) translate3d(0,${(e * vh * .1).toFixed(1)}px,0) rotateX(${(e * 7).toFixed(2)}deg) scale(${(1 - e * .07).toFixed(4)})`;
-    s.el.style.opacity = (1 - e * .9).toFixed(3);
+  // stories: the stage holds still; which step shows depends on how far through the story you are
+  for (const s of stories) {
+    const p = clamp((y - s.el.offsetTop) / Math.max(1, s.el.offsetHeight - vh));
+    const step = y < s.el.offsetTop - vh * 0.35 ? -1 : Math.min(s.n - 1, Math.floor(p * s.n));
+    s.line && s.line.style.setProperty('--p', p.toFixed(3));
+    if (step !== s.step) setStep(s, step);
   }
-  air && air.scroll(y, v);
   if (!reduce) for (const p of visible) {
     const r = p.getBoundingClientRect(), k = (r.top + r.height / 2 - vh / 2) / vh;
     p.firstElementChild.style.setProperty('--py', `${(-k * r.height * 0.07).toFixed(1)}px`);
@@ -109,7 +112,7 @@ const rio = new IntersectionObserver(es => {
     if (el.matches('.stats > div')) countUp(el.querySelector('[data-count]'));
   });
 }, { rootMargin: '0px 0px -9% 0px', threshold: 0.12 });
-$$('[data-r], [data-lines], [data-ph], [data-map], [data-plan]').forEach(el => { if (!el.closest('.hero')) rio.observe(el); });
+$$('[data-r], [data-lines], [data-ph]').forEach(el => { if (!el.closest('.hero')) rio.observe(el); });
 
 function countUp(el) {
   if (!el || reduce) return; const to = +el.dataset.count, suf = el.textContent.replace(/[\d,]/g, ''), t0 = performance.now(), dur = 1300;
@@ -137,16 +140,11 @@ $$('[data-legend] [data-cat]').forEach(b => {
   b.addEventListener('mouseenter', () => plan.filter(b.dataset.cat)); b.addEventListener('mouseleave', () => { if (!b.classList.contains('is-on')) plan.filter(null); });
   b.addEventListener('click', () => { const on = !b.classList.contains('is-on'); $$('[data-legend] [data-cat]').forEach(x => x.classList.remove('is-on')); b.classList.toggle('is-on', on); plan.filter(on ? b.dataset.cat : null); });
 });
-const goBtn = $('[data-3d]');
-const v3d = new View3D($('[data-v3d]'), plan, {
-  onProgress: p => { goBtn.style.setProperty('--load', p.toFixed(3)); if (p >= 1) goBtn.disabled = false; },
-  onOpen: () => { lenis?.stop(); document.body.classList.add('is-3d'); },
-  onClose: () => { lenis?.start(); document.body.classList.remove('is-3d'); },
-  onEnquire: enquire,
-});
-// start fetching the 3D frames while the reader is still a screen or two away
-new IntersectionObserver((es, o) => { if (es.some(e => e.isIntersecting)) { v3d.load().catch(err => { console.error(err); goBtn.hidden = true; }); o.disconnect(); } }, { rootMargin: '160% 0px' }).observe($('#layout'));
-goBtn.addEventListener('click', () => { plan.pinned = null; plan.show(null); goTo('#layout', { duration: .7 }); setTimeout(() => v3d.open(), lenis ? 380 : 0); });
+const v3d = new View3D($('[data-v3d]'), plan, { onEnquire: enquire });
+// the last step of the plan story lifts the drawing into the rendered site; stepping back lowers it again
+$('#plan').addEventListener('step', e => { const k = e.detail; plan.setEnabled(k >= 1 && k <= 3); v3d.request(k >= 4); });
+// fetch the 3D frames while the reader is still a few screens away, so the lift is ready when they arrive
+new IntersectionObserver((es, o) => { if (es.some(e => e.isIntersecting)) { v3d.load().catch(err => console.error(err)); o.disconnect(); } }, { rootMargin: '250% 0px' }).observe($('#plan'));
 
 /* ---------------- enquiry ---------------- */
 const form = $('[data-form]');
@@ -225,6 +223,4 @@ addEventListener('resize', () => { measure(); frame(); });
 addEventListener('load', () => { measure(); frame(); });
 new ResizeObserver(() => { measure(); frame(); }).observe(document.body);
 measure(); frame();
-const tt = $('[data-orbit]') ? new Turntable($('[data-orbit]')) : null;
-air = reduce ? null : new Air($('[data-air]'), { count: phone() ? 26 : 52 });
-window.zufa = { lenis, plan, v3d, tt, air };
+window.zufa = { lenis, plan, v3d, stories };

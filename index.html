@@ -18,7 +18,6 @@
 <body class="is-loading">
 
 <div class="tone" aria-hidden="true"></div>
-<canvas class="air" data-air aria-hidden="true"></canvas>
 
 <div class="loader" aria-hidden="true">
   <div class="wm wm--loader">ZUFA<span>Living</span></div>
@@ -30,7 +29,7 @@
   <a class="wm wm--nav" href="#top" aria-label="ZUFA Living, back to the top">ZUFA<span>Living</span></a>
   <nav class="nav__links" aria-label="Sections">
     <a href="#welcome">The land</a>
-    <a href="#layout">The plan</a>
+    <a href="#plan">The plan</a>
     <a href="#clubhouse">Clubhouse</a>
     <a href="#villas">Villas</a>
     <a href="#setting">The setting</a>
@@ -107,62 +106,64 @@
   </div>
 </section>
 
-<!-- ============ AT A GLANCE ============ -->
-<section class="sec stone banner banner--short glance" id="glance" data-tone="stone">
-  <div class="ph ph--top ph--orbit" data-ph data-orbit role="img" aria-label="The estate from the air, turning slowly: Layout L1 rendered in 3D"><div class="fd" style="--d:180deg;--s:46%"></div></div>
-  <div class="banner__body banner__body--stack">
-    <div class="copy copy--wide">
-      <div class="kick" data-r>The estate, at a glance</div>
-      <h2 class="h1" data-lines>Generous <em>by design.</em></h2>
+<!-- ============ THE PLAN: told in steps as you scroll (the screen holds still; each step plays on its own clock) ============ -->
+<section class="sec stone story story--plan" id="plan" data-tone="stone" data-story="5" style="--n:5">
+  <div class="stage">
+    <div class="story__visual">
+      <div class="plan" data-plan role="img" aria-label="Layout L1: the site boundary, fifty-nine estates, the clubhouse core and the grand entrance at the southern gate. Hover or tap an estate for its size and price."></div>
+      <div class="plotcard" data-plotcard hidden></div>
     </div>
-    <div class="stats">
-      <div data-r><em data-count="25">25*</em><b>Acres overall</b><span>Gated wellness community</span></div>
-      <div data-r><em data-count="59">59</em><b>Private estates</b><span>Layout L1</span></div>
-      <div data-r><em data-count="5099">5,099</em><b>Sq.yd. amenity land</b><span>Clubhouse &amp; garden core</span></div>
+    <div class="v3d" data-v3d aria-label="The land in 3D: drag to turn the site, tap a plot for its size and price">
+      <canvas class="v3d__img" data-v3d-img></canvas>
+      <canvas class="v3d__hl" data-v3d-hl></canvas>
+      <div class="plotcard plotcard--dark" data-v3d-card hidden></div>
+      <div class="v3d__bottom">
+        <button class="v3d__turn" data-turn="-1" aria-label="Turn the site left">&larr;</button>
+        <p class="v3d__hint" data-v3d-hint>Drag to turn the site &middot; tap a plot</p>
+        <button class="v3d__turn" data-turn="1" aria-label="Turn the site right">&rarr;</button>
+      </div>
     </div>
-    <p class="fine" data-r>*Includes 2 acres reserved for Phase 2. Figures indicative and subject to site verification.</p>
+    <div class="story__shade" aria-hidden="true"></div>
+    <div class="story__text">
+      <div class="beats">
+        <div class="beat" data-b="0">
+          <div class="kick">The estate, at a glance</div>
+          <h2 class="h1">Generous<br><em>by design.</em></h2>
+          <div class="fact"><em>25<sup>*</sup></em><span><b>Acres overall</b>A gated wellness community, held by the forest.</span></div>
+          <p class="fine">*Includes 2 acres reserved for Phase 2. Figures indicative and subject to site verification.</p>
+        </div>
+        <div class="beat" data-b="1">
+          <div class="kick">The layout</div>
+          <h2 class="h1">Fifty-nine estates,<br><em>one quiet plan.</em></h2>
+          <div class="legend" data-legend>
+            <button data-cat="quarter"><i class="sw sw--quarter"></i><span><b>Quarter-acre</b><small>1,210 sq.yd</small></span><em>40</em></button>
+            <button data-cat="half"><i class="sw sw--half"></i><span><b>Half-acre</b><small>2,420 sq.yd</small></span><em>12</em></button>
+            <button data-cat="signature"><i class="sw sw--signature"></i><span><b>Signature</b><small>4,226 sq.yd</small></span><em>1</em></button>
+            <button data-cat="bespoke"><i class="sw sw--bespoke"></i><span><b>Bespoke</b><small>860&ndash;1,441 sq.yd</small></span><em>6</em></button>
+          </div>
+          <p class="fine">Hover or tap an estate for its size and price.</p>
+        </div>
+        <div class="beat" data-b="2">
+          <div class="kick">Clubhouse &amp; garden core</div>
+          <h2 class="h1">The heart<br><em>of the plan.</em></h2>
+          <div class="fact"><em>5,099</em><span><b>Sq.yd. amenity land</b>Spa, pool and gardens, with fifty-nine estates around the core.</span></div>
+        </div>
+        <div class="beat" data-b="3">
+          <div class="kick">The grand entrance</div>
+          <h2 class="h1">One gate,<br><em>to the south.</em></h2>
+          <div class="fact"><em>55&prime;</em><span><b>Boulevard</b>Opening onto 40&prime; and 30&prime; avenues. Barcoded entry, set up for each owner&rsquo;s car.</span></div>
+        </div>
+        <div class="beat beat--light" data-b="4">
+          <div class="kick">Layout L1 &middot; in 3D</div>
+          <h2 class="h1">The plan,<br><em>from the air.</em></h2>
+          <p>Turn the site and find your estate. Tap any plot for its size and price.</p>
+          <p class="fine">Layout L1, drawing AR-001. Artist impression; indicative and subject to site verification.</p>
+        </div>
+      </div>
+      <div class="story__line" aria-hidden="true"><i></i></div>
+    </div>
   </div>
 </section>
-
-<!-- ============ THE LAYOUT (comes alive in 3D) ============ -->
-<section class="sec stone layout" id="layout" data-tone="stone">
-  <div class="layout__text">
-    <div class="kick" data-r>The layout</div>
-    <h2 class="h1" data-lines>Fifty-nine<br>estates,<br><em>one quiet plan.</em></h2>
-    <div class="legend" data-legend>
-      <button data-cat="quarter" data-r><i class="sw sw--quarter"></i><span><b>Quarter-acre</b><small>1,210 sq.yd</small></span><em>40</em></button>
-      <button data-cat="half" data-r><i class="sw sw--half"></i><span><b>Half-acre</b><small>2,420 sq.yd</small></span><em>12</em></button>
-      <button data-cat="signature" data-r><i class="sw sw--signature"></i><span><b>Signature</b><small>4,226 sq.yd</small></span><em>1</em></button>
-      <button data-cat="bespoke" data-r><i class="sw sw--bespoke"></i><span><b>Bespoke</b><small>860&ndash;1,441 sq.yd</small></span><em>6</em></button>
-      <div data-r><i class="sw sw--club"></i><span><b>Clubhouse</b><small>spa, pool, gardens</small></span></div>
-      <div data-r><i class="sw sw--gate"></i><span><b>Grand entrance</b><small>barcoded car access</small></span></div>
-    </div>
-    <p class="fine" data-r>Layout L1, drawing AR-001. Indicative; subject to site verification.</p>
-  </div>
-  <div class="layout__plan">
-    <div class="plan" data-plan aria-label="Layout L1: fifty-nine estates. Hover or tap a plot for its size and price." role="img"></div>
-    <div class="plotcard" data-plotcard hidden></div>
-    <button class="pill pill--bronze layout__go" data-3d disabled><span class="ring" aria-hidden="true"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16"/><circle class="ring__p" cx="18" cy="18" r="16"/></svg></span><span>See the land in 3D</span></button>
-  </div>
-</section>
-
-<!-- 3D viewer (Blender-rendered: the drawn plan lifts into the real site, then turns under your hand) -->
-<div class="v3d" data-v3d aria-hidden="true" role="dialog" aria-label="The land in 3D">
-  <canvas class="v3d__img" data-v3d-img></canvas>
-  <canvas class="v3d__hl" data-v3d-hl></canvas>
-  <div class="v3d__ui">
-    <div class="v3d__top">
-      <div><div class="kick">Layout L1 &middot; in 3D</div><p class="v3d__title">Fifty-nine estates, <em>one quiet plan.</em></p></div>
-      <button class="v3d__close" data-v3d-close aria-label="Back to the plan"><span>Back to the plan</span><i></i></button>
-    </div>
-    <div class="v3d__bottom">
-      <button class="v3d__turn" data-turn="-1" aria-label="Turn left">&larr;</button>
-      <p class="v3d__hint">Drag to turn the site &middot; hover or tap a plot</p>
-      <button class="v3d__turn" data-turn="1" aria-label="Turn right">&rarr;</button>
-    </div>
-    <div class="plotcard plotcard--dark" data-v3d-card hidden></div>
-  </div>
-</div>
 
 <!-- ============ LAND OPTIONS ============ -->
 <section class="sec stone options" id="options" data-tone="stone">
@@ -252,52 +253,79 @@
   <p class="fine" data-r>Artist impressions.</p>
 </section>
 
-<!-- ============ THE SETTING ============ -->
-<section class="sec ink setting" id="setting" data-tone="ink">
-  <div class="copy">
-    <div class="kick" data-r>The setting</div>
-    <h2 class="h1" data-lines>45 minutes<br><em>from the ORR.</em></h2>
-    <p data-r>Chevella Road, near Manneguda: a forest hug, low AQI and good access roads, with Hyderabad and the airport corridor within reach.</p>
-    <div class="chips" data-r><span>Forest hug</span><span>Low AQI</span><span>Good access roads</span></div>
-    <div class="addr" data-r><b>Project location</b>Sy. Nos. 130&ndash;132, Medikonda (V), Pudur (M), Vikarabad District, Telangana.</div>
-  </div>
-  <div class="map" data-map>
-    <svg viewBox="0 0 920 600" role="img" aria-label="Schematic map: ZUFA Living near Manneguda, about 50 km along Chevella Road from Appa Junction on Hyderabad's Outer Ring Road; the Regional Ring Road to the west; Shamshabad Airport to the south-east.">
-      <defs><radialGradient id="city" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#c9a979" stop-opacity=".16"/><stop offset="1" stop-color="#c9a979" stop-opacity="0"/></radialGradient></defs>
-      <path class="m-draw m-rrr" d="M 170 40 C 70 200, 70 420, 190 590" fill="none" stroke="rgba(247,243,236,.45)" stroke-width="2" stroke-dasharray="10 9"/>
-      <text class="m-fade" x="16" y="326" fill="rgba(247,243,236,.7)" font-family="PJ" font-weight="600" font-size="19" letter-spacing="3">RRR</text>
-      <circle class="m-draw m-city" cx="690" cy="260" r="170" fill="url(#city)" stroke="rgba(247,243,236,.85)" stroke-width="2" pathLength="1"/>
-      <text class="m-fade" x="690" y="252" text-anchor="middle" fill="#f7f3ec" font-family="CG" font-size="48">Hyderabad</text>
-      <text class="m-fade" x="690" y="288" text-anchor="middle" fill="rgba(247,243,236,.6)" font-family="PJ" font-weight="600" font-size="17" letter-spacing="3">OUTER RING ROAD</text>
-      <path class="m-draw m-road" d="M 536 330 C 430 360, 330 360, 210 330" fill="none" stroke="#c9a979" stroke-width="5" stroke-linecap="round" pathLength="1"/>
-      <circle class="m-fade" cx="536" cy="330" r="10" fill="#f7f3ec"/>
-      <text class="m-fade" x="548" y="374" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="21">Appa Junction</text>
-      <text class="m-fade" x="380" y="408" text-anchor="middle" fill="#c9a979" font-family="PJ" font-weight="600" font-size="19" letter-spacing="2">CHEVELLA ROAD &#183; ~50 KM &#183; 45 MIN</text>
-      <circle class="m-pulse" cx="210" cy="330" r="22" fill="none" stroke="#c9a979" stroke-width="2"/><circle cx="210" cy="330" r="11" fill="#c9a979"/>
-      <text class="m-fade" x="230" y="262" text-anchor="middle" fill="#f7f3ec" font-family="CG" font-weight="700" font-size="40">ZUFA Living</text>
-      <text class="m-fade" x="230" y="294" text-anchor="middle" fill="rgba(247,243,236,.7)" font-family="PJ" font-weight="500" font-size="18">near Manneguda</text>
-      <path class="m-draw m-air" d="M 700 432 L 760 540" stroke="rgba(247,243,236,.6)" stroke-width="2" fill="none" stroke-dasharray="4 6"/>
-      <path class="m-fade" d="M 752 528 L 762 544 L 744 540" fill="none" stroke="rgba(247,243,236,.75)" stroke-width="2"/>
-      <text class="m-fade" x="905" y="580" text-anchor="end" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="20">Shamshabad Airport</text>
-    </svg>
-    <p class="fine">~50 km from ORR, Appa Junction &middot; ~45 min drive &middot; Schematic map, not to scale.</p>
-  </div>
-</section>
-
-<!-- ============ FIVE REASONS ============ -->
-<section class="sec stone split split--img-right split--narrow reasons" id="reasons" data-tone="stone">
-  <div class="ph ph--right" data-ph><img src="assets/img/hero-portrait.jpg" alt="The entrance canopy and stone walls along the drive at dusk" loading="lazy" style="object-position:50% 50%"><div class="fd" style="--d:270deg;--s:38%"></div></div>
-  <div class="copy copy--wide">
-    <div class="kick" data-r>Five reasons</div>
-    <h2 class="h1" data-lines>Why this road<br><em>matters.</em></h2>
-    <div class="rows">
-      <div data-r><i>I</i><div><b>Data Centre City</b><span>Chevella &mdash; a planned data-centre hub on this corridor.</span></div></div>
-      <div data-r><i>II</i><div><b>Regional Ring Road</b><span>The region&rsquo;s new outer ring, within reach.</span></div></div>
-      <div data-r><i>III</i><div><b>200-ft road widening</b><span>Appa Junction to Manneguda &mdash; the road to the estate.</span></div></div>
-      <div data-r><i>IV</i><div><b>Airport access road</b><span>Shamshabad &mdash; a dedicated access road toward the airport.</span></div></div>
-      <div data-r><i>V</i><div><b>Bullet train road</b><span>A high-speed rail corridor in the plan.</span></div></div>
+<!-- ============ THE SETTING: the road, then the five reasons appear on the map one by one ============ -->
+<section class="sec ink story story--map" id="setting" data-tone="ink" data-story="6" style="--n:6">
+  <div class="stage">
+    <div class="story__visual map" data-map>
+      <svg viewBox="0 0 920 600" role="img" aria-label="Schematic map: ZUFA Living near Manneguda, about 50 km along Chevella Road from Appa Junction on Hyderabad's Outer Ring Road; Data Centre City at Chevella; the Regional Ring Road to the west; the airport access road to Shamshabad; a bullet train corridor.">
+        <defs>
+          <radialGradient id="city" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#c9a979" stop-opacity=".16"/><stop offset="1" stop-color="#c9a979" stop-opacity="0"/></radialGradient>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- base: the city, the road, the estate -->
+        <path class="m-rrr" d="M 170 40 C 70 200, 70 420, 190 590" fill="none" stroke="rgba(247,243,236,.4)" stroke-width="2" stroke-dasharray="10 9"/>
+        <text class="m-fade" x="16" y="326" fill="rgba(247,243,236,.7)" font-family="PJ" font-weight="600" font-size="19" letter-spacing="3">RRR</text>
+        <circle class="m-city" cx="690" cy="260" r="170" fill="url(#city)" stroke="rgba(247,243,236,.85)" stroke-width="2" pathLength="1"/>
+        <text class="m-fade" x="690" y="252" text-anchor="middle" fill="#f7f3ec" font-family="CG" font-size="48">Hyderabad</text>
+        <text class="m-fade" x="690" y="288" text-anchor="middle" fill="rgba(247,243,236,.6)" font-family="PJ" font-weight="600" font-size="17" letter-spacing="3">OUTER RING ROAD</text>
+        <path class="m-air" d="M 700 432 L 760 540" stroke="rgba(247,243,236,.5)" stroke-width="2" fill="none" stroke-dasharray="4 6"/>
+        <path class="m-fade" d="M 752 528 L 762 544 L 744 540" fill="none" stroke="rgba(247,243,236,.75)" stroke-width="2"/>
+        <text class="m-fade" x="905" y="580" text-anchor="end" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="20">Shamshabad Airport</text>
+        <!-- III: the widening (under the road) -->
+        <path class="r r3" d="M 536 330 C 430 360, 330 360, 210 330" fill="none" stroke="rgba(201,169,121,.32)" stroke-width="20" stroke-linecap="round" filter="url(#glow)"/>
+        <path class="m-road" d="M 536 330 C 430 360, 330 360, 210 330" fill="none" stroke="#c9a979" stroke-width="5" stroke-linecap="round" pathLength="1"/>
+        <circle class="m-fade" cx="536" cy="330" r="10" fill="#f7f3ec"/>
+        <text class="m-fade" x="548" y="374" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="21">Appa Junction</text>
+        <text class="m-fade m-road-label" x="380" y="408" text-anchor="middle" fill="#c9a979" font-family="PJ" font-weight="600" font-size="19" letter-spacing="2">CHEVELLA ROAD &#183; ~50 KM &#183; 45 MIN</text>
+        <circle class="m-pulse" cx="210" cy="330" r="22" fill="none" stroke="#c9a979" stroke-width="2"/><circle cx="210" cy="330" r="11" fill="#c9a979"/>
+        <text class="m-fade" x="230" y="262" text-anchor="middle" fill="#f7f3ec" font-family="CG" font-weight="700" font-size="40">ZUFA Living</text>
+        <text class="m-fade" x="230" y="294" text-anchor="middle" fill="rgba(247,243,236,.7)" font-family="PJ" font-weight="500" font-size="18">near Manneguda</text>
+        <!-- I: Data Centre City at Chevella -->
+        <g class="r r1">
+          <g fill="#c9a979" filter="url(#glow)"><rect x="330" y="318" width="9" height="12"/><rect x="342" y="312" width="9" height="18"/><rect x="354" y="316" width="9" height="14"/><rect x="366" y="320" width="7" height="10"/></g>
+          <text x="420" y="300" text-anchor="middle" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="16">Data Centre City</text>
+          <text x="420" y="282" text-anchor="middle" fill="rgba(247,243,236,.6)" font-family="PJ" font-weight="600" font-size="12" letter-spacing="2.5">CHEVELLA</text>
+        </g>
+        <!-- II: the Regional Ring Road -->
+        <g class="r r2">
+          <path d="M 170 40 C 70 200, 70 420, 190 590" fill="none" stroke="#c9a979" stroke-width="3.5" filter="url(#glow)"/>
+          <text x="16" y="352" fill="#c9a979" font-family="PJ" font-weight="600" font-size="12" letter-spacing="1.5">REGIONAL</text><text x="16" y="368" fill="#c9a979" font-family="PJ" font-weight="600" font-size="12" letter-spacing="1.5">RING ROAD</text>
+        </g>
+        <!-- III label -->
+        <text class="r r3" x="380" y="444" text-anchor="middle" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="16">200-ft road widening &#183; Appa Junction to Manneguda</text>
+        <!-- IV: the airport access road -->
+        <g class="r r4">
+          <path d="M 700 432 L 760 540" stroke="#c9a979" stroke-width="3.5" fill="none" filter="url(#glow)"/>
+          <circle cx="762" cy="544" r="8" fill="#c9a979"/>
+          <text x="772" y="486" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="16">Airport access road</text>
+        </g>
+        <!-- V: the bullet train road -->
+        <g class="r r5">
+          <path d="M 18 486 C 200 520, 420 520, 570 390" fill="none" stroke="#c9a979" stroke-width="3" filter="url(#glow)"/>
+          <path d="M 18 486 C 200 520, 420 520, 570 390" fill="none" stroke="rgba(247,243,236,.55)" stroke-width="9" stroke-dasharray="1.5 9"/>
+          <text x="40" y="536" fill="#f7f3ec" font-family="PJ" font-weight="600" font-size="16">Bullet train road</text>
+        </g>
+      </svg>
+      <p class="fine">~50 km from ORR, Appa Junction &middot; ~45 min drive &middot; Schematic map, not to scale.</p>
     </div>
-    <p class="fine" data-r>All government announced. Infrastructure references reflect publicly announced projects; timelines are subject to government confirmation.</p>
+    <div class="story__text">
+      <div class="beats">
+        <div class="beat" data-b="0">
+          <div class="kick">The setting</div>
+          <h2 class="h1">45 minutes<br><em>from the ORR.</em></h2>
+          <p>Chevella Road, near Manneguda: a forest hug, low AQI and good access roads, with Hyderabad and the airport corridor within reach.</p>
+          <div class="chips"><span>Forest hug</span><span>Low AQI</span><span>Good access roads</span></div>
+          <div class="addr"><b>Project location</b>Sy. Nos. 130&ndash;132, Medikonda (V), Pudur (M), Vikarabad District, Telangana.</div>
+        </div>
+        <div class="beat" data-b="1"><div class="kick">Five reasons &middot; why this road matters</div><div class="reason"><i>I</i><b>Data Centre City</b><span>Chevella &mdash; a planned data-centre hub on this corridor.</span></div></div>
+        <div class="beat" data-b="2"><div class="kick">Five reasons &middot; why this road matters</div><div class="reason"><i>II</i><b>Regional Ring Road</b><span>The region&rsquo;s new outer ring, within reach.</span></div></div>
+        <div class="beat" data-b="3"><div class="kick">Five reasons &middot; why this road matters</div><div class="reason"><i>III</i><b>200-ft road widening</b><span>Appa Junction to Manneguda &mdash; the road to the estate.</span></div></div>
+        <div class="beat" data-b="4"><div class="kick">Five reasons &middot; why this road matters</div><div class="reason"><i>IV</i><b>Airport access road</b><span>Shamshabad &mdash; a dedicated access road toward the airport.</span></div></div>
+        <div class="beat" data-b="5"><div class="kick">Five reasons &middot; why this road matters</div><div class="reason"><i>V</i><b>Bullet train road</b><span>A high-speed rail corridor in the plan.</span></div>
+          <p class="fine">All government announced. Infrastructure references reflect publicly announced projects; timelines are subject to government confirmation.</p></div>
+      </div>
+      <div class="story__line" aria-hidden="true"><i></i></div>
+    </div>
   </div>
 </section>
 

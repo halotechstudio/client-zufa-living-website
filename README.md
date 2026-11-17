@@ -13,16 +13,16 @@ The site follows the brochure (`brochure/ZUFA_Living_Brochure_v4.html`, "Measure
 
 The brochure is the source for copy, figures and look, not for page order: the site is one seamless scroll. There are no page or chapter numbers anywhere.
 - The page tone blends between stone and ink as you move between sections (`js/main.js` → `toneAt`), and photographs dissolve into it through a CSS mask using the brochure's fade recipe (`--d` angle, `--s` start).
-- Reveals are short and time based (they never scrub with the scroll); the only scroll-linked motion is cheap transforms: the hero drives in through the gate, and each section settles back in depth (`perspective` + `rotateX`) as the next rises (`js/main.js` → `frame`).
-- `js/turntable.js`: behind "Generous by design" the real site turns slowly (the Blender orbit frames, played on a clock with a soft blend between neighbours; the pointer leans the turn).
-- `js/air.js`: pollen by day and fireflies by night, drifting at different depths with the scroll and the pointer.
-- The setting map stands up out of the page in 3D as it draws.
-- `blender/render_villas.py` renders villa turntables, but the models are not detailed enough to sit next to the brochure's villa photographs, so the site does not use them.
+- Reveals are short and time based; the only scroll-linked motion is cheap (image depth, a gentle drift on the hero). The nav steps aside while you read and returns when you scroll up.
+- **Stories** (`data-story` sections, `js/main.js` → `setStep`): the screen holds still while scrolling moves through steps. Each step only switches classes (`at-k` for every step reached, `st-k` for the current one); every animation then plays on its own clock, so nothing is scrubbed and nothing jitters.
+  - **The plan** (`#plan`): the boundary draws (25 acres) → the 59 estates fill in from the gate, with the legend → the clubhouse core (5,099 sq.yd) → the grand entrance and the road south → the drawing lifts into the Blender-rendered site, inside the page, where it can be turned and its plots tapped.
+  - **The setting** (`#setting`): Chevella Road draws from Appa Junction to the estate, then each of the five reasons appears on the map in turn.
+- `blender/render_villas.py` renders villa turntables, but the models are not detailed enough to sit beside the brochure's villa photographs, so the site does not use them.
 
 ## The layout (Layout L1, drawing AR-001)
 `js/plan.js` draws the plan north-up from `js/site-data.js`: the approach road runs straight south from the grand entrance by plot 1. Hover or tap a plot for its size and price; the legend filters by category.
 
-**See the land in 3D** lifts that drawing into the real site, rendered in Blender Cycles: 30 tilt frames that start exactly over the drawing (north up) and end in an aerial, then a 72-frame, 360° orbit you can drag. Plots stay hoverable in 3D (their outlines are projected into every orbit frame). Frames are shown one at a time on a clock, never blended, so the move stays sharp.
+The last step of the plan story lifts that drawing into the real site, rendered in Blender Cycles: 30 tilt frames that start exactly over the drawing (north up) and end in an aerial, then a 72-frame, 360° orbit you can drag. Plots stay hoverable in 3D (their outlines are projected into every orbit frame). Frames are shown one at a time on a clock, never blended, so the move stays sharp.
 
 To re-render after a change to the site model:
 ```
