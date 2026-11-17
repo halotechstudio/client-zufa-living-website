@@ -13,7 +13,11 @@ The site follows the brochure (`brochure/ZUFA_Living_Brochure_v4.html`, "Measure
 
 The brochure is the source for copy, figures and look, not for page order: the site is one seamless scroll. There are no page or chapter numbers anywhere.
 - The page tone blends between stone and ink as you move between sections (`js/main.js` → `toneAt`), and photographs dissolve into it through a CSS mask using the brochure's fade recipe (`--d` angle, `--s` start).
-- Reveals are short and time based (they never scrub with the scroll); the only scroll-linked motion is cheap image depth.
+- Reveals are short and time based (they never scrub with the scroll); the only scroll-linked motion is cheap transforms: the hero drives in through the gate, and each section settles back in depth (`perspective` + `rotateX`) as the next rises (`js/main.js` → `frame`).
+- `js/turntable.js`: behind "Generous by design" the real site turns slowly (the Blender orbit frames, played on a clock with a soft blend between neighbours; the pointer leans the turn).
+- `js/air.js`: pollen by day and fireflies by night, drifting at different depths with the scroll and the pointer.
+- The setting map stands up out of the page in 3D as it draws.
+- `blender/render_villas.py` renders villa turntables, but the models are not detailed enough to sit next to the brochure's villa photographs, so the site does not use them.
 
 ## The layout (Layout L1, drawing AR-001)
 `js/plan.js` draws the plan north-up from `js/site-data.js`: the approach road runs straight south from the grand entrance by plot 1. Hover or tap a plot for its size and price; the legend filters by category.

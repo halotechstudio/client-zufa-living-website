@@ -2,6 +2,8 @@
 // the only scroll-linked things are cheap transforms (image depth, the page tone), so the scroll itself stays smooth.
 import { Plan, View3D } from './plan.js';
 import { PLOTS } from './site-data.js';
+import { Turntable } from './turntable.js';
+import { Air } from './air.js';
 
 const CONFIG = { email: 'zufaliving@gmail.com', phone: '+91 98850 33844' };
 const $ = (s, r = document) => r.querySelector(s);
@@ -53,6 +55,7 @@ const phs = $$('[data-ph]'), visible = new Set();
 const vio = new IntersectionObserver(es => es.forEach(e => e.isIntersecting ? visible.add(e.target) : visible.delete(e.target)), { rootMargin: '20% 0px' });
 phs.forEach(p => vio.observe(p));
 
+let air = null;
 const hero = $('.hero'), heroMedia = $('[data-hero]'), heroCopy = $('.hero__copy');
 let lastTone = -1, lastNav = '';
 function frame() {
@@ -65,12 +68,25 @@ function frame() {
   const nt = secs[ni].ink ? 'ink' : 'stone';
   if (nt !== lastNav) { nav.dataset.t = nt; lastNav = nt; }
   nav.classList.toggle('is-scrolled', y > vh * 0.6);
-  // hero: the gate recedes as you move in
+  // hero: you drive in through the gate (the photograph comes toward you, the title lifts away)
   if (y < vh * 1.2) {
     const k = clamp(y / vh);
-    heroMedia.style.transform = `translate3d(0,${(y * 0.32).toFixed(1)}px,0)`;
+    heroMedia.style.transform = `translate3d(0,${(y * 0.22).toFixed(1)}px,0) scale(${(1 + k * 0.32).toFixed(4)})`; heroMedia.style.opacity = (1 - k * .55).toFixed(3);
     heroCopy.style.opacity = (1 - k * 1.6).toFixed(3); heroCopy.style.transform = `translate3d(0,${(-y * 0.12).toFixed(1)}px,0)`;
   }
+  // every page settles back in depth as the next one rises over it: one continuous surface, no cuts
+  if (!reduce && !document.body.classList.contains('is-3d')) for (const s of secs) {
+    if (s.el === hero) continue;
+    const bottom = s.top + s.h - y;                                   // layout position (unaffected by our own transform)
+    const leave = bottom < vh && bottom > 0 ? Math.min(1, 1 - bottom / vh) : bottom <= 0 ? 1 : 0;
+    if (leave === s.leave) continue; s.leave = leave;
+    if (leave <= 0) { s.el.style.transform = ''; s.el.style.opacity = ''; continue; }
+    const e = leave * leave * (3 - 2 * leave);
+    s.el.style.transform = phone() ? `translate3d(0,${(e * vh * .08).toFixed(1)}px,0) scale(${(1 - e * .04).toFixed(4)})`
+      : `perspective(1600px) translate3d(0,${(e * vh * .1).toFixed(1)}px,0) rotateX(${(e * 7).toFixed(2)}deg) scale(${(1 - e * .07).toFixed(4)})`;
+    s.el.style.opacity = (1 - e * .9).toFixed(3);
+  }
+  air && air.scroll(y, v);
   if (!reduce) for (const p of visible) {
     const r = p.getBoundingClientRect(), k = (r.top + r.height / 2 - vh / 2) / vh;
     p.firstElementChild.style.setProperty('--py', `${(-k * r.height * 0.07).toFixed(1)}px`);
@@ -209,4 +225,6 @@ addEventListener('resize', () => { measure(); frame(); });
 addEventListener('load', () => { measure(); frame(); });
 new ResizeObserver(() => { measure(); frame(); }).observe(document.body);
 measure(); frame();
-window.zufa = { lenis, plan, v3d };
+const tt = $('[data-orbit]') ? new Turntable($('[data-orbit]')) : null;
+air = reduce ? null : new Air($('[data-air]'), { count: phone() ? 26 : 52 });
+window.zufa = { lenis, plan, v3d, tt, air };
