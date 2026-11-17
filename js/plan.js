@@ -4,7 +4,6 @@
 import { SITE, PLOTS } from './site-data.js';
 
 const CAT = { quarter: 'Quarter-acre', half: 'Half-acre', signature: 'Signature estate', bespoke: 'Bespoke' };
-const FILL = { quarter: '#ddd4c6', half: '#d3c6b2', signature: '#ab9476', bespoke: '#ddd4c6' };
 const fmt = n => Math.round(n).toLocaleString('en-IN');
 // brochure prices: standard plots at their published figure, bespoke at Rs 5,000 per sq.yd rounded down to the lakh
 export const price = p => p.cat === 'quarter' ? 'Rs 60 lakh' : p.cat === 'half' ? 'Rs 1.20 crore' : p.cat === 'signature' ? 'Rs 2.10 crore'
@@ -17,7 +16,7 @@ const D1 = [-0.171, 0.985];                          // the approach road: strai
 const ROAD = 270;
 
 function cardHTML(p) {
-  return `<div class="kick">Plot ${p.id} &middot; ${CAT[p.cat]}</div><b>${fmt(p.sqyd)} sq.yd</b><span>${fmt(p.sqyd * 9)} sq.ft${p.cat === 'signature' ? ' &middot; the Signature Estate' : ''}</span><strong>${price(p)}</strong>` +
+  return `<p class="pc-k">Plot ${p.id}, ${CAT[p.cat].toLowerCase()}</p><b>${fmt(p.sqyd)} sq.yd</b><span>${fmt(p.sqyd * 9)} sq.ft${p.cat === 'signature' ? ', the Signature Estate' : ''}</span><strong>${price(p)}</strong>` +
     `<a href="#visit" data-enquire="${p.id}">Enquire about plot ${p.id}</a>`;
 }
 
@@ -33,24 +32,24 @@ export class Plan {
     const pts = a => a.map(p => p.map(v => v.toFixed(2)).join(',')).join(' ');
     const cx = SITE.club.reduce((s, p) => s + p[0], 0) / SITE.club.length, cz = SITE.club.reduce((s, p) => s + p[1], 0) / SITE.club.length;
     let s = `<svg viewBox="${this.vb.map(v => v.toFixed(1)).join(' ')}" preserveAspectRatio="xMidYMid meet">`;
-    s += `<path class="road" d="M${gx},${gz} L${end[0].toFixed(1)},${end[1].toFixed(1)}" fill="none" stroke="rgba(28,26,23,.26)" stroke-width="11"/>`;
-    s += `<polygon class="site" points="${pts(SITE.outline)}" fill="rgba(138,106,66,.07)"/>`;
+    s += `<path class="road" d="M${gx},${gz} L${end[0].toFixed(1)},${end[1].toFixed(1)}"/>`;
+    s += `<polygon class="site" points="${pts(SITE.outline)}"/>`;
     for (const p of PLOTS) {
       const d = Math.hypot(p.c[0] - gx, p.c[1] - gz);
-      s += `<polygon class="pl" data-id="${p.id}" style="--dl:${(d / 1100).toFixed(2)}s" points="${pts(p.poly)}" fill="${FILL[p.cat]}" stroke="#1c1a17" stroke-width=".55" stroke-linejoin="round"/>`;
+      s += `<polygon class="pl pl--${p.cat}" data-id="${p.id}" style="--dl:${(d / 1100).toFixed(2)}s" points="${pts(p.poly)}"/>`;
     }
-    s += `<polygon class="club" points="${pts(SITE.club)}" fill="#8a6a42" stroke="#1c1a17" stroke-width=".7"/>`;
-    s += `<circle class="ping club-ping" cx="${cx.toFixed(1)}" cy="${cz.toFixed(1)}" r="16" fill="none" stroke="#8a6a42" stroke-width="1.4"/>`;
+    s += `<polygon class="club" points="${pts(SITE.club)}"/>`;
+    s += `<circle class="ping club-ping" cx="${cx.toFixed(1)}" cy="${cz.toFixed(1)}" r="16"/>`;
     for (const p of PLOTS) {
       const big = p.cat === 'half' || p.cat === 'signature';
-      s += `<text class="pt" style="--dl:${(Math.hypot(p.c[0] - gx, p.c[1] - gz) / 1100 + .2).toFixed(2)}s" x="${p.c[0].toFixed(1)}" y="${(p.c[1] + 2.3).toFixed(1)}" text-anchor="middle" font-size="${big ? 6.6 : 5.8}" fill="${p.cat === 'signature' ? '#f7f3ec' : '#1c1a17'}">${p.id}</text>`;
+      s += `<text class="pt${p.cat === 'signature' ? ' pt--light' : ''}" style="--dl:${(Math.hypot(p.c[0] - gx, p.c[1] - gz) / 1100 + .2).toFixed(2)}s" x="${p.c[0].toFixed(1)}" y="${(p.c[1] + 2.3).toFixed(1)}" text-anchor="middle" font-size="${big ? 6.6 : 5.8}">${p.id}</text>`;
     }
-    s += `<polygon class="outline" points="${pts(SITE.outline)}" fill="none" stroke="#1c1a17" stroke-width="1.5" stroke-linejoin="round"/>`;
-    s += `<circle class="ping gate-ping" cx="${gx}" cy="${gz}" r="9" fill="none" stroke="#8a6a42" stroke-width="1.4"/>`;
-    s += `<circle class="gate" cx="${gx}" cy="${gz}" r="6.5" fill="#8a6a42" stroke="#eee8df" stroke-width="2"/>`;
+    s += `<polygon class="outline" points="${pts(SITE.outline)}"/>`;
+    s += `<circle class="ping gate-ping" cx="${gx}" cy="${gz}" r="9"/>`;
+    s += `<circle class="gate" cx="${gx}" cy="${gz}" r="6.5"/>`;
     const nx = x1 - 26, nz = z0 + 18;
-    s += `<g class="north"><text x="${nx}" y="${nz}" text-anchor="middle" font-family="PJ" font-weight="600" font-size="9.5" fill="#1c1a17">N</text>` +
-      `<path d="M${nx},${nz + 34} V${nz + 6} M${nx - 4.5},${nz + 12} L${nx},${nz + 5} L${nx + 4.5},${nz + 12}" fill="none" stroke="#1c1a17" stroke-width="1.1"/></g>`;
+    s += `<g class="north"><text x="${nx}" y="${nz}" text-anchor="middle" font-weight="600" font-size="9.5">N</text>` +
+      `<path d="M${nx},${nz + 34} V${nz + 6} M${nx - 4.5},${nz + 12} L${nx},${nz + 5} L${nx + 4.5},${nz + 12}"/></g>`;
     el.innerHTML = s + '</svg>';
     this.svg = el.querySelector('svg');
     for (const d of el.querySelectorAll('.outline, .road')) d.style.setProperty('--len', Math.ceil(d.getTotalLength ? d.getTotalLength() : 2000));
@@ -162,7 +161,7 @@ export class View3D {
     if (this.busy) return; this.busy = true;
     try {
       while (this.want !== (this.state === 'live')) {
-        if (this.want) { this.hint.textContent = 'Preparing the land in 3D'; this.root.classList.add('is-wait'); await this.load(); this.root.classList.remove('is-wait'); this.hint.textContent = 'Drag to turn the site · tap a plot'; if (!this.want) break; await this.open(); }
+        if (this.want) { this.hint.textContent = 'Preparing the land in 3D'; this.root.classList.add('is-wait'); await this.load(); this.root.classList.remove('is-wait'); this.hint.textContent = 'Drag to turn the site, tap a plot'; if (!this.want) break; await this.open(); }
         else await this.close();
       }
     } finally { this.busy = false; }

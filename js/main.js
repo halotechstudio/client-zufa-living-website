@@ -101,24 +101,15 @@ function frame() {
 }
 
 /* ---------------- reveals: short, crisp, once ---------------- */
-$$('[data-lines]').forEach(h => {
-  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/i).map((l, i) => `<span class="ln"><span style="--dl:${(i * 0.09).toFixed(2)}s">${l.trim()}</span></span>`).join('');
-});
 const rio = new IntersectionObserver(es => {
   const ins = es.filter(e => e.isIntersecting).map(e => e.target).sort((a, b) => a.compareDocumentPosition(b) & 4 ? -1 : 1);
   ins.forEach((el, i) => {
-    if (!el.matches('[data-lines]') && !el.style.getPropertyValue('--dl')) el.style.setProperty('--dl', `${Math.min(i * 0.07, 0.42).toFixed(2)}s`);
+    if (!el.style.getPropertyValue('--dl')) el.style.setProperty('--dl', `${Math.min(i * 0.07, 0.42).toFixed(2)}s`);
     el.classList.add('is-in'); rio.unobserve(el);
-    if (el.matches('.stats > div')) countUp(el.querySelector('[data-count]'));
   });
 }, { rootMargin: '0px 0px -9% 0px', threshold: 0.12 });
-$$('[data-r], [data-lines], [data-ph]').forEach(el => { if (!el.closest('.hero')) rio.observe(el); });
+$$('[data-r], [data-ph]').forEach(el => { if (!el.closest('.hero')) rio.observe(el); });
 
-function countUp(el) {
-  if (!el || reduce) return; const to = +el.dataset.count, suf = el.textContent.replace(/[\d,]/g, ''), t0 = performance.now(), dur = 1300;
-  const f = now => { const t = clamp((now - t0) / dur), e = 1 - Math.pow(1 - t, 4); el.textContent = Math.round(to * e).toLocaleString('en-IN') + suf; if (t < 1) requestAnimationFrame(f); };
-  requestAnimationFrame(f);
-}
 
 /* ---------------- 3D touch: cards lean toward the pointer; the hero breathes with the mouse ---------------- */
 if (finePointer && !reduce) {
@@ -201,24 +192,9 @@ snd.addEventListener('click', () => { const on = Sound.toggle(); snd.setAttribut
 /* ---------------- arrival ---------------- */
 const big = $('.big');
 ['.big__z', '.big__l'].forEach((s, j) => { const el = $(s, big); el.innerHTML = [...el.textContent].map((c, i) => `<span class="ch" style="--dl:${(0.15 + j * .35 + i * .07).toFixed(2)}s">${c}</span>`).join(''); });
-const loader = $('.loader'), line = $('.loader__line');
-requestAnimationFrame(() => loader.classList.add('is-show'));
-const heroImg = heroMedia.querySelector('img');
-const ready = Promise.all([
-  heroImg.complete ? Promise.resolve() : new Promise(r => { heroImg.onload = heroImg.onerror = r; }),
-  document.fonts ? document.fonts.ready : Promise.resolve(),
-  new Promise(r => setTimeout(r, 1100)),
-]);
-let p = 0; const pt = setInterval(() => { p = Math.min(.9, p + .08); line.style.setProperty('--p', p); }, 90);
-ready.then(() => {
-  clearInterval(pt); line.style.setProperty('--p', 1);
-  setTimeout(() => {
-    loader.classList.add('is-out'); document.body.classList.remove('is-loading'); document.body.classList.add('is-ready');
-    $$('.hero [data-r]').forEach((el, i) => { el.style.setProperty('--dl', `${(0.55 + i * 0.25).toFixed(2)}s`); el.classList.add('is-in'); });
-    measure(); frame();
-    setTimeout(() => loader.remove(), 1300);
-  }, 320);
-});
+// no loader: the gate is on screen at once; the wordmark settles in when the face has loaded (or after 700 ms at most)
+Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 700))])
+  .then(() => requestAnimationFrame(() => { document.body.classList.add('is-ready'); measure(); frame(); }));
 addEventListener('resize', () => { measure(); frame(); });
 addEventListener('load', () => { measure(); frame(); });
 new ResizeObserver(() => { measure(); frame(); }).observe(document.body);
