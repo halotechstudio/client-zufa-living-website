@@ -233,6 +233,9 @@ html:not(.js) .plan .site,html:not(.js) .plan .pl,html:not(.js) .plan .pt,html:n
 .v3d__turn:focus-visible{outline:2px solid currentColor;outline-offset:3px;transition:none}
 .story__shade{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity 1s var(--ease-out);background:linear-gradient(90deg,var(--color-shade) 0%,var(--color-shade-mid) 32%,transparent 54%)}
 .st-4 .story__shade{opacity:1;transition-delay:1.2s}
+.story--plan .stage::after{content:"";position:absolute;inset:auto 0 0 0;height:34%;z-index:4;pointer-events:none;background:linear-gradient(transparent,var(--color-ink));opacity:0;transition:opacity 1s var(--ease-out)}
+.story--plan.st-4 .stage::after{opacity:1;transition-delay:1.2s}
+.story--plan.st-4{background:var(--color-ink)}
 .beat--light{color:var(--color-on-ink)}
 .beat--light .beat__p{color:var(--color-on-ink-muted)}
 .beat--light .fine{color:var(--color-on-ink-faint)}
@@ -283,8 +286,8 @@ html:not(.js) .map .r{opacity:1}
 .reason p{margin-top:var(--space-md);font-size:var(--text-lead);color:var(--color-on-ink-muted);max-width:24em}
 
 /* ---------- 5. arrival ---------- */
-.arrival{padding-top:0}
-.ph--band{position:relative;height:52svh;margin-bottom:calc(-1 * var(--space-3xl));--et:0%}
+.arrival{padding-top:0;background:var(--color-ink)}
+.ph--band{position:relative;height:60svh;margin-bottom:calc(-1 * var(--space-3xl));--et:32%}
 .ph--band img{object-position:50% 50%}
 .arrival .split2{position:relative;z-index:var(--z-base)}
 .list{margin:0;padding:0;list-style:none}
