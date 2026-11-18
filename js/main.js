@@ -3,7 +3,7 @@
 import { Plan, View3D } from './plan.js';
 import { PLOTS } from './site-data.js';
 
-// crm: the ZUFA CRM's web address (see crm/README.md), e.g. 'https://zufa-crm.onrender.com'. Blank = enquiries open an email instead.
+// crm: the ZUFA CRM's web address (see crm/README.md), e.g. 'https://zufa-crm.vercel.app'. Blank = enquiries open an email instead.
 const CONFIG = { email: 'zufaliving@gmail.com', phone: '+91 98850 33844', crm: '' };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];

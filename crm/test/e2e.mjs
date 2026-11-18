@@ -53,15 +53,15 @@ const GRAPH = `http://127.0.0.1:${graph.address().port}`;
 /* ---- start the CRM ---- */
 const dataDir = mkdtempSync(join(tmpdir(), 'zcrm-'));
 const PORT = 3900 + Math.floor(Math.random() * 90);
-const crm = spawn(process.execPath, ['--disable-warning=ExperimentalWarning', 'server.js'], {
+const crm = spawn(process.execPath, ['server.js'], {
   cwd: CRM_DIR, stdio: ['ignore', 'pipe', 'pipe'],
-  env: { ...process.env, ENV_FILE: join(dataDir, 'none.env'), PORT: String(PORT), DATA_DIR: dataDir, ADMIN_PASSWORD: 'admin-pass-123',
+  env: { ...process.env, ENV_FILE: join(dataDir, 'none.env'), PORT: String(PORT), DATA_DIR: ':memory:', DATABASE_URL: '', POSTGRES_URL: '', CRON_SECRET: 'cron-secret-xyz', ADMIN_PASSWORD: 'admin-pass-123',
     META_APP_ID: APP, META_APP_SECRET: APP_SECRET, META_VERIFY_TOKEN: 'zufa-verify', META_PAGE_ID: PAGE, META_PAGE_ACCESS_TOKEN: TOKEN,
     GRAPH_API_BASE: GRAPH, SITE_ORIGINS: SITE, SYNC_INTERVAL_MINUTES: '0' },
 });
 let log = ''; crm.stdout.on('data', d => (log += d)); crm.stderr.on('data', d => (log += d));
 const BASE = `http://127.0.0.1:${PORT}`;
-for (let i = 0; i < 50 && !log.includes('running on'); i++) await new Promise(r => setTimeout(r, 100));
+for (let i = 0; i < 150 && !log.includes('running on'); i++) await new Promise(r => setTimeout(r, 100));
 
 let passed = 0;
 const step = async (name, fn) => { try { await fn(); passed++; console.log('  ✓', name); } catch (e) { console.log('  ✗', name, '\n', e); console.log(log); cleanup(1); } };
@@ -175,6 +175,13 @@ await step('settings: Meta connection check and Page subscription', async () => 
   const s = json(await call('/api/settings'));
   assert.equal(s.meta.page, 'ZUFA Living'); assert.equal(s.meta.subscribed, true);
   assert.equal((await call('/api/subscribe', { method: 'POST', body: {} })).status, 200);
+});
+await step('cron: needs CRON_SECRET, then checks Meta', async () => {
+  assert.equal((await call('/api/cron/sync')).status, 401);
+  assert.equal((await call('/api/cron/sync', { headers: { Authorization: 'Bearer wrong' } })).status, 401);
+  const r = await call('/api/cron/sync', { headers: { Authorization: 'Bearer cron-secret-xyz' } });
+  assert.equal(r.status, 200); assert.equal(json(r).forms, 1);
+  assert.equal(json(await call('/api/me')).syncDue, false);
 });
 await step('salespeople cannot open admin settings', async () => {
   const admin = cookie;

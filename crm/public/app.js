@@ -170,6 +170,13 @@ function leadsView(main) {
     h('div', { class: 'tabs', id: 'tabs', role: 'group', 'aria-label': 'Status' }),
     h('div', { class: 'card', id: 'list' }, h('div', { class: 'empty' }, 'Loading…')));
   loadLeads().catch(e => toast(e.message, true));
+  // Safety net for missed webhooks: if the last check with Meta is over an hour old, do one quietly now.
+  if (me.syncDue && !state.autoSynced) {
+    state.autoSynced = true;
+    api('/api/sync', { method: 'POST', body: { days: 3 } })
+      .then(r => { if (r.added) { toast(`${r.added} new lead${r.added === 1 ? '' : 's'} fetched from Meta`); loadLeads(); } })
+      .catch(() => {});
+  }
 }
 
 function drawTabs() {
@@ -332,7 +339,7 @@ async function settingsView(main) {
         try { await api('/api/subscribe', { method: 'POST', body: {} }); toast('Page subscribed'); render(); } catch (x) { toast(x.message, true); e.currentTarget.disabled = false; }
       } }, 'Connect Page to this app'),
       c.pageToken && c.pageId && [days, h('button', { class: 'btn', onclick: e => syncNow(e.currentTarget, +days.value) }, 'Fetch leads from Meta now')]),
-    h('p', { class: 'hint' }, `Graph API ${s.graphVersion}. ${s.lastSync ? `Last check: ${fmtTime(s.lastSync)}.` : ''} The CRM also checks by itself every hour in case a webhook was missed.`));
+    h('p', { class: 'hint' }, `Graph API ${s.graphVersion}. ${s.lastSync ? `Last check: ${fmtTime(s.lastSync)}.` : ''} ${s.cron ? 'A daily scheduled check, plus a check whenever someone opens the dashboard (at most hourly), catch any webhook that was missed.' : 'CRON_SECRET is not set, so the daily scheduled check is off; the dashboard still checks when opened.'}`));
 
   const name = h('input', { class: 'inp', placeholder: 'Name', autocomplete: 'off' });
   const pw = h('input', { class: 'inp', placeholder: 'Password (8+ characters)', type: 'password', autocomplete: 'new-password' });

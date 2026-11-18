@@ -8,7 +8,7 @@ A small sales dashboard for ZUFA Living. Leads land here automatically from:
 
 The sales team can search and filter leads, move each one through **New → Contacted → Site visit booked → Negotiation → Won / Lost**, assign leads to a salesperson, set a follow-up date, keep notes, call or WhatsApp with one tap, and export to Excel (CSV).
 
-This folder is separate from the website. GitHub Pages can only serve fixed files, so the CRM runs on its own small server (step 1).
+It runs on **Vercel** as a second project from this repository (Root Directory `crm`). The leads are kept in a **Neon Postgres** database, added through the Vercel Marketplace.
 
 ---
 
@@ -22,12 +22,12 @@ Meta sends a "new lead" ping ──► https://YOUR-CRM/webhook
         │                            (the CRM checks it really came from Meta)
         ▼
 CRM asks Meta for the lead's answers ──► saves name, phone, email, answers,
-                                          campaign / ad set / ad / form
+                                          campaign / ad set / ad / form  (Neon database)
         ▼
 Lead appears on the dashboard as "New"
 ```
 
-If the CRM is ever offline, it catches up by itself. Every hour it asks Meta for the last two days of leads, and anything it already has is skipped. Settings also has a **Fetch leads from Meta now** button that reaches back up to 90 days, which is as long as Meta keeps leads.
+The CRM also catches anything a webhook missed. A **daily** scheduled job (Vercel Cron) re-checks the last three days of leads. So does opening the dashboard, at most once an hour. Leads it already has are skipped. Settings also has a **Fetch leads from Meta now** button that reaches back up to 90 days, which is as long as Meta keeps leads.
 
 ---
 
@@ -35,45 +35,53 @@ If the CRM is ever offline, it catches up by itself. Every hour it asks Meta for
 
 - The **Facebook Page** the ads run from. You must be an admin of it.
 - The **Meta Business portfolio** (Business Manager) that owns the Page and the ad account.
-- A **GitHub account** with access to this repository.
-- About **US$7–8 a month** for hosting. Check [render.com/pricing](https://render.com/pricing) for the current price.
+- The **Vercel team** that hosts the website. The CRM is a second project there.
 
-You'll fill in these settings along the way. Write them into the `.env` file or Render's Environment tab. **Don't email them or paste them into chats.**
+Neon's free plan is plenty: hundreds of thousands of leads fit in it.
+
+> Vercel's free **Hobby** plan is meant for personal, non-commercial use. A CRM for a business should run on a **Pro** team. Pro also allows the scheduled check to run every hour instead of once a day (see step 1). Check [vercel.com/pricing](https://vercel.com/pricing) for current prices.
+
+You'll fill in these settings in Vercel → the CRM project → **Settings → Environment Variables**. **Don't email them or paste them into chats.**
 
 | Setting | What it is | Where you get it |
 |---|---|---|
+| `DATABASE_URL` | The database address | Added for you by Neon (step 1) |
 | `ADMIN_PASSWORD` | Your dashboard password | You choose it (12+ characters) |
+| `CRON_SECRET` | Stops strangers from triggering the scheduled check | You make it up (16+ random characters) |
 | `META_APP_ID` | Your Meta app's number | Step 2 |
 | `META_APP_SECRET` | Your Meta app's secret key | Step 2 |
 | `META_VERIFY_TOKEN` | A phrase you make up, e.g. `zufa-leads-7Kq2` | You choose it |
 | `META_PAGE_ID` | The Facebook Page's number | Step 4 |
 | `META_PAGE_ACCESS_TOKEN` | Lets the CRM read the Page's leads | Step 4 |
-| `SITE_ORIGINS` | The website address allowed to send enquiries | Step 8 |
-| `DATA_DIR` | Where the database is kept | `/var/data` on Render |
+| `SITE_ORIGINS` | The website address(es) allowed to send enquiries | Step 8 |
+
+> **After changing any Environment Variable, redeploy.** Go to **Deployments → ⋯ on the latest → Redeploy**. Vercel only applies new values to new deployments.
 
 ---
 
-## Step 1: Put the CRM online (Render)
+## Step 1: Put the CRM online (Vercel + Neon)
 
-The webhook needs a public `https://` address that is always on. We recommend **[Render](https://render.com)**. It deploys straight from GitHub, gives you HTTPS for free, and keeps the database on a small permanent disk.
+1. In Vercel, in the website's team, click **Add New → Project** and import `halotechstudio/client-zufa-living-website`, the same repository as the website.
+   - **Project name:** `zufa-crm`
+   - **Root Directory:** click **Edit** and choose `crm`. This one matters.
+   - **Framework Preset:** Other. Leave the build settings as they are; `crm/vercel.json` sets them.
+   - Click **Deploy**. The first deploy works, but you can't log in yet.
+2. Add the database:
+   - Open the `zufa-crm` project and go to **Storage → Create Database** (or **Marketplace**). Choose **Neon** (Serverless Postgres).
+   - Pick the **Free** plan and the region closest to India, e.g. **Singapore (ap-southeast-1)**.
+   - When it asks which project to connect, choose `zufa-crm` and tick all environments.
+   - Neon adds `DATABASE_URL` to the project by itself. The CRM creates its tables on first use.
+3. Under **Settings → Environment Variables**, add:
+   - `ADMIN_PASSWORD`: your password
+   - `CRON_SECRET`: any long random string. Vercel sends it with each scheduled check, and the CRM ignores scheduled calls without it.
+4. Under **Settings → Deployment Protection**, make sure **Production** is *not* protected. "Vercel Authentication" on preview deployments only is fine. Meta has to be able to reach the CRM.
+5. **Redeploy**: Deployments → ⋯ → Redeploy.
+6. Open the project's address, e.g. `https://zufa-crm.vercel.app`. You should see the green **ZUFA Leads** login page. Log in as **admin** with your password.
+7. Your webhook address is that address with `/webhook` on the end, e.g. `https://zufa-crm.vercel.app/webhook`. **Settings** in the dashboard shows it with a Copy button.
 
-> Render's **free** plan is not suitable. It falls asleep, and every redeploy wipes the database. Use the **Starter** plan with a disk.
-
-1. Sign up at render.com, ideally with your GitHub account.
-2. Click **New → Web Service** and connect the `halotechstudio/client-zufa-living-website` repository.
-3. Fill in:
-   - **Name:** `zufa-crm`. Your address becomes `https://zufa-crm.onrender.com`, or similar.
-   - **Root Directory:** `crm`
-   - **Runtime:** Node
-   - **Build Command:** leave it empty, or type `echo ok`. There is nothing to install.
-   - **Start Command:** `npm start`
-   - **Instance type:** Starter
-4. Under **Advanced → Add Disk**: Name `data`, Mount path `/var/data`, Size `1 GB`. That holds hundreds of thousands of leads.
-5. Under **Environment**, add `DATA_DIR` = `/var/data` and `ADMIN_PASSWORD` = (your password). Add the Meta values later, as you get them.
-6. Click **Create Web Service**. After a minute or two, open your address. You should see the ZUFA Leads login page. Log in as **admin** with your password.
-7. Note your CRM address (the "YOUR-CRM" link). Your webhook address is that link with `/webhook` on the end, e.g. `https://zufa-crm.onrender.com/webhook`. **Settings** in the dashboard shows it with a Copy button.
-
-Every time you change a setting under **Environment**, Render restarts the CRM by itself. Your leads are safe on the disk.
+> **Custom domain (optional):** in the project, go to **Settings → Domains** and add something like `crm.zufaliving.com`. If you do, use that address everywhere below (Meta webhook, `CONFIG.crm`).
+>
+> **Hourly instead of daily checks (Pro teams):** in `crm/vercel.json`, change the cron `schedule` from `30 0 * * *` to `0 * * * *`.
 
 ---
 
@@ -87,16 +95,16 @@ Every time you change a setting under **Environment**, Render restarts the CRM b
 3. Open the app. Go to **App settings → Basic**:
    - Copy the **App ID** into `META_APP_ID`.
    - Click **Show** next to **App secret** and copy it into `META_APP_SECRET`.
-   - Set **Privacy Policy URL** to the website's privacy page: `https://halotechstudio.github.io/client-zufa-living-website/privacy.html`, or the custom domain's `/privacy.html`.
+   - Set **Privacy Policy URL** to the website's privacy page (its `/privacy.html`).
    - Set **Category** (e.g. Business and pages) and click **Save changes**.
 4. Make up a verify phrase (letters, numbers, dashes) and save it as `META_VERIFY_TOKEN`.
-5. Add these values to Render's **Environment** tab and save. The CRM restarts.
+5. Add these three values in Vercel and **redeploy**.
 
 ## Step 3: Turn on Webhooks
 
 1. In the app, click **Add product** (or **Use cases → Customize**), find **Webhooks**, and click **Set up**.
 2. In the drop-down at the top, choose **Page**, then click **Subscribe to this object**.
-   - **Callback URL:** your webhook address, e.g. `https://zufa-crm.onrender.com/webhook`
+   - **Callback URL:** your webhook address, e.g. `https://zufa-crm.vercel.app/webhook`
    - **Verify token:** exactly the same phrase as `META_VERIFY_TOKEN`
    - Click **Verify and save**. If Meta reports an error, see "If something goes wrong" below.
 3. In the list of Page fields, find **leadgen** and click **Subscribe**.
@@ -123,7 +131,7 @@ This "key" lets the CRM read the Page's leads.
 7. The result lists your Pages. For ZUFA Living:
    - `id` is the Page ID. Put it in `META_PAGE_ID`.
    - `access_token` is the Page token. Put it in `META_PAGE_ACCESS_TOKEN`. A Page token made from a long-lived token like this **does not expire**.
-8. Save both on Render. The CRM restarts.
+8. Save both in Vercel and **redeploy**.
 
 > The token stops working if the person who created it changes their Facebook password, loses admin rights on the Page, or removes the app. If that happens, repeat this step.
 >
@@ -162,16 +170,16 @@ Then send another test lead to confirm.
 
 1. In `js/main.js` at the top, set `crm` to your CRM address:
    ```js
-   const CONFIG = { email: '…', phone: '…', crm: 'https://zufa-crm.onrender.com' };
+   const CONFIG = { email: '…', phone: '…', crm: 'https://zufa-crm.vercel.app' };
    ```
-2. On Render, set `SITE_ORIGINS` to the website's address, with no path or trailing slash. For example `https://halotechstudio.github.io`, or `https://zufaliving.com,https://www.zufaliving.com` for a custom domain.
+2. In the CRM project, set `SITE_ORIGINS` to every address the website is served from, with no path or trailing slash, separated by commas. For example: `https://zufaliving.com,https://www.zufaliving.com,https://client-zufa-living-website.vercel.app`. Then **redeploy**.
 3. Publish the website. Enquiries now go straight into the CRM, marked **Web**. If the CRM can't be reached, the form falls back to opening an email, as before, so no enquiry is lost.
 
 ## Step 9: Add your sales team
 
 In **Settings → Sales team**, add each salesperson with a name and a password (8+ characters). They log in with those details, and can filter to **Assigned to me**. Switching someone off logs them out at once, and their leads stay.
 
-Only the **admin** account can open Settings, delete leads, and manage the team. To change the admin password, change `ADMIN_PASSWORD` on Render.
+Only the **admin** account can open Settings, delete leads, and manage the team. To change the admin password, change `ADMIN_PASSWORD` in Vercel and redeploy.
 
 ---
 
@@ -179,43 +187,52 @@ Only the **admin** account can open Settings, delete leads, and manage the team.
 
 | What you see | Likely cause | Fix |
 |---|---|---|
-| Meta: "The URL couldn't be validated" | The verify phrase doesn't match, or the CRM isn't running | Check that `META_VERIFY_TOKEN` on Render is exactly what you typed in Meta, and that your CRM address opens in a browser |
-| Settings: "Rejected a webhook with a bad signature" | Wrong `META_APP_SECRET` | Copy the App secret again (App settings → Basic) |
+| Meta: "The URL couldn't be validated" | Verify phrase mismatch, not redeployed, or the site is behind Deployment Protection | Check `META_VERIFY_TOKEN`, redeploy, and step 1 point 4 |
+| Login page says "Something went wrong" | No database connected | Step 1 point 2, then redeploy |
+| Settings: "Rejected a webhook with a bad signature" | Wrong `META_APP_SECRET` | Copy the App secret again (App settings → Basic) and redeploy |
 | Settings: ✗ "Token does not work" | Token expired or missing a permission | Redo step 4 |
 | Lead shows "Details pending from Meta" | The CRM got the ping but couldn't read the lead (token or Leads access) | Fix the token or step 6, then press **Check Meta for new leads**. The lead fills in. |
 | Leads arrive without campaign names | The token lacks `ads_read` / `ads_management` | Redo step 4 with `ads_read` ticked |
 | Test leads arrive but real ones don't | The app is still in Development mode | Take the app Live (step 7) |
 | Website form opens email instead of saving | `CONFIG.crm` is blank, or the site address isn't in `SITE_ORIGINS` | Step 8 |
 
-**Settings → Recent activity** logs every webhook, sync and error, and is the first place to look.
+**Settings → Recent activity** logs every webhook, sync and error, and is the first place to look. Vercel's **Logs** tab for the project shows anything deeper.
 
 ---
 
 ## Backups
 
-Leads live in one file, `crm.db`, on the Render disk. For a copy, use **Export CSV** on the Leads page (it exports whatever the filters show; clear them to export everything). Render's paid disks also keep daily snapshots, which you can restore from the service's **Disks** tab.
+- **Export CSV** on the Leads page gives you a spreadsheet copy. It exports whatever the filters show, so clear them to export everything.
+- Neon keeps a short restore history on the free plan, and can restore the database to an earlier point in time from its console (Vercel → Storage → Open in Neon).
 
 ---
 
 ## For developers
 
-- Plain Node.js (22.13 or newer; 24 recommended). **No npm packages.** It uses Node's built-in `node:sqlite` and `http`.
-- `npm start` runs the server. `npm test` runs an end-to-end test with a fake Graph API: webhook handshake, signature check, lead fetch, de-duplication, the retry path, filters, website form, CSV and permissions.
-- Run it locally: `cp .env.example .env`, fill in `ADMIN_PASSWORD`, then `npm start` and open http://localhost:3000.
-- Files:
-  - `server.js`: routes
-  - `lib/meta.js`: webhook signature check, Graph API calls (Graph API **v26.0**, set by `GRAPH_API_VERSION`)
-  - `lib/leads.js`: storing and querying leads
-  - `lib/db.js`: schema
-  - `lib/auth.js`: logins (scrypt hashes, 30-day session cookies)
-  - `public/`: the dashboard
-- Endpoints:
+- **Stack:** Node.js 22.13 or newer.
+  - Database: `@neondatabase/serverless` (Neon over HTTP) when `DATABASE_URL` is set.
+  - Without `DATABASE_URL`, a local **PGlite** database in `DATA_DIR` (dev dependency), so a local run needs no setup.
+- **Local run:** `npm install`, `cp .env.example .env`, fill in `ADMIN_PASSWORD`, then `npm start` and open http://localhost:3000.
+- **Tests:** `npm test` runs a 14-check end-to-end test against in-memory PGlite and a fake Graph API. It covers:
+  - webhook handshake and signature check
+  - lead fetch, de-duplication and the retry path
+  - filters, website form and CSV export
+  - cron auth and user permissions
+- **Layout:**
+  - `api/index.js` is the single Vercel Function.
+  - `vercel.json` serves `public/` statically, rewrites every other path to that function (`req.url` keeps the original path), and defines the cron.
+  - `server.js` is the local server.
+  - `lib/app.js`: all routes
+  - `lib/meta.js`: Graph API **v26.0** (`GRAPH_API_VERSION`)
+  - `lib/leads.js`, `lib/db.js` (schema, created on first use), `lib/auth.js` (scrypt hashes, 30-day session cookies)
+- **Endpoints:**
 
   | Endpoint | Purpose |
   |---|---|
-  | `GET/POST /webhook` | Meta |
-  | `POST /api/website-lead` | Public, CORS limited to `SITE_ORIGINS`, 5 per IP per 10 minutes, honeypot field `website` |
+  | `GET/POST /webhook` | Meta (the lead is fetched before the response, since Vercel may stop work after it) |
+  | `GET /api/cron/sync` | Vercel Cron, `Authorization: Bearer $CRON_SECRET` |
+  | `POST /api/website-lead` | Public, CORS limited to `SITE_ORIGINS`, 5 per IP per 10 minutes (in the database), honeypot field `website` |
   | `/api/*` | Logged-in users only |
 
-- Meta fields read for each lead: `id, created_time, field_data, form_id, ad_id, ad_name, adset_id, adset_name, campaign_id, campaign_name, platform, is_organic`. If the token can't read ad names, the CRM falls back to the IDs.
+- **Meta fields read for each lead:** `id, created_time, field_data, form_id, ad_id, ad_name, adset_id, adset_name, campaign_id, campaign_name, platform, is_organic`. If the token can't read ad names, the CRM falls back to the IDs.
 - Every Graph call sends an `appsecret_proof`.

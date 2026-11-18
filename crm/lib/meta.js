@@ -1,7 +1,7 @@
 // Talking to Meta: verifying webhooks and reading leads from the Graph API.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { config, metaReady } from './config.js';
-import { db, logEvent, kvSet } from './db.js';
+import { one, all, run, logEvent, kvSet } from './db.js';
 import { saveMetaLead } from './leads.js';
 
 const FULL_FIELDS = 'id,created_time,field_data,form_id,ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,platform,is_organic,custom_disclaimer_responses';
@@ -40,19 +40,21 @@ async function graphLeadFields(path, params) {
     catch (e) {
       if (![100, 10, 200, 270, 294].includes(e.code)) throw e;
       namesAllowed = false;
-      logEvent('error', false, `Ad/campaign names not readable (${e.message}). Saving leads without them; give the token ads_read or ads_management to get names.`);
+      await logEvent('error', false, `Ad/campaign names not readable (${e.message}). Saving leads without them; give the token ads_read or ads_management to get names.`);
     }
   }
   return graph(path, { ...params, fields: BASIC_FIELDS });
 }
 
+const saveForm = (id, name) => run('INSERT INTO forms (form_id, name) VALUES ($1, $2) ON CONFLICT (form_id) DO UPDATE SET name = excluded.name', [id, name || null]);
+
 async function formName(formId) {
   if (!formId) return null;
-  const cached = db.prepare('SELECT name FROM forms WHERE form_id = ?').get(formId);
+  const cached = await one('SELECT name FROM forms WHERE form_id = $1', [formId]);
   if (cached) return cached.name;
   try {
     const f = await graph(formId, { fields: 'name' });
-    db.prepare('INSERT OR REPLACE INTO forms (form_id, name) VALUES (?, ?)').run(formId, f.name || null);
+    await saveForm(formId, f.name);
     return f.name || null;
   } catch { return null; }
 }
@@ -74,16 +76,16 @@ export async function handleWebhook(body) {
       try {
         if (!metaReady()) throw new Error('META_PAGE_ACCESS_TOKEN / META_PAGE_ID are not set');
         const { created } = await fetchAndSaveLead(String(v.leadgen_id), { page_id: v.page_id, form_id: v.form_id, ad_id: v.ad_id });
-        logEvent('webhook', true, `Lead ${v.leadgen_id} ${created ? 'saved' : 'already known'}`);
+        await logEvent('webhook', true, `Lead ${v.leadgen_id} ${created ? 'saved' : 'already known'}`);
       } catch (e) {
         // Keep a placeholder so the lead isn't lost; the next sync fills in the details.
-        saveMetaLead({ id: String(v.leadgen_id), created_time: v.created_time ? new Date(v.created_time * 1000).toISOString() : new Date().toISOString(),
+        await saveMetaLead({ id: String(v.leadgen_id), created_time: v.created_time ? new Date(v.created_time * 1000).toISOString() : new Date().toISOString(),
           form_id: v.form_id, ad_id: v.ad_id, page_id: v.page_id, field_data: [] }, e.message);
-        logEvent('webhook', false, `Lead ${v.leadgen_id}: could not fetch details — ${e.message}`);
+        await logEvent('webhook', false, `Lead ${v.leadgen_id}: could not fetch details — ${e.message}`);
       }
     }
   }
-  kvSet('last_webhook_at', new Date().toISOString());
+  await kvSet('last_webhook_at', new Date().toISOString());
 }
 
 /** Backfill: read every lead form on the Page and pull leads from the last `days` days. */
@@ -95,11 +97,11 @@ export async function syncRecent(days = 7) {
     const page = next ? await graph(next) : await graph(`${config.pageId}/leadgen_forms`, { fields: 'id,name,status', limit: '100' });
     forms.push(...(page.data || [])); next = page.paging?.next;
   } while (next);
-  for (const f of forms) db.prepare('INSERT OR REPLACE INTO forms (form_id, name) VALUES (?, ?)').run(f.id, f.name || null);
+  for (const f of forms) await saveForm(f.id, f.name);
 
   let seen = 0, added = 0;
   // Also retry placeholders whose details failed earlier.
-  for (const r of db.prepare("SELECT leadgen_id FROM leads WHERE fetch_error IS NOT NULL AND leadgen_id IS NOT NULL").all()) {
+  for (const r of await all("SELECT leadgen_id FROM leads WHERE fetch_error IS NOT NULL AND leadgen_id IS NOT NULL", [])) {
     try { await fetchAndSaveLead(r.leadgen_id); } catch {}
   }
   for (const f of forms) {
@@ -107,7 +109,7 @@ export async function syncRecent(days = 7) {
     for (;;) {
       for (const lead of page.data || []) {
         seen++;
-        const { created } = saveMetaLead({ ...lead, form_id: lead.form_id || f.id, form_name: f.name, page_id: config.pageId });
+        const { created } = await saveMetaLead({ ...lead, form_id: lead.form_id || f.id, form_name: f.name, page_id: config.pageId });
         if (created) added++;
       }
       if (!page.paging?.next) break;
@@ -115,8 +117,8 @@ export async function syncRecent(days = 7) {
     }
   }
   const msg = `Checked ${forms.length} form(s), ${seen} lead(s) from the last ${days} day(s); ${added} new.`;
-  logEvent('sync', true, msg);
-  kvSet('last_sync_at', new Date().toISOString());
+  await logEvent('sync', true, msg);
+  await kvSet('last_sync_at', new Date().toISOString());
   return { forms: forms.length, seen, added, message: msg };
 }
 

@@ -3,3 +3,5 @@
 data/
 *.db
 *.db-*
+node_modules/
+.vercel/
