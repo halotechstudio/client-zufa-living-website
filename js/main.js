@@ -3,7 +3,8 @@
 import { Plan, View3D } from './plan.js';
 import { PLOTS } from './site-data.js';
 
-const CONFIG = { email: 'zufaliving@gmail.com', phone: '+91 98850 33844' };
+// crm: the ZUFA CRM's web address (see crm/README.md), e.g. 'https://zufa-crm.onrender.com'. Blank = enquiries open an email instead.
+const CONFIG = { email: 'zufaliving@gmail.com', phone: '+91 98850 33844', crm: '' };
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -151,9 +152,20 @@ form.addEventListener('submit', e => {
   $$('[required]', form).forEach(i => { const bad = !i.value.trim() || (i.pattern && !new RegExp('^' + i.pattern + '$').test(i.value.trim())); i.closest('.field').classList.toggle('is-error', bad); if (bad) ok = false; });
   if (!ok) return;
   const d = Object.fromEntries(new FormData(form));
-  const body = `Site visit request\n\nName: ${d.name}\nPhone: ${d.phone}\nInterested in: ${d.interest}\nPlot: ${d.plot || '-'}\n`;
-  location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent('ZUFA Living — site visit request')}&body=${encodeURIComponent(body)}`;
-  $('.form__ok', form).hidden = false;
+  const okMsg = $('.form__ok', form), go = $('.form__go', form);
+  const byEmail = () => {
+    const body = `Site visit request\n\nName: ${d.name}\nPhone: ${d.phone}\nInterested in: ${d.interest}\nPlot: ${d.plot || '-'}\n`;
+    location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent('ZUFA Living — site visit request')}&body=${encodeURIComponent(body)}`;
+    okMsg.textContent = 'Thank you. Your email app is opening with the request; send it and the team will be in touch to fix a slot.';
+    okMsg.hidden = false;
+  };
+  if (!CONFIG.crm) return byEmail();
+  // straight into the sales team's CRM; if it can't be reached, fall back to email so no enquiry is lost
+  go.disabled = true;
+  fetch(CONFIG.crm.replace(/\/$/, '') + '/api/website-lead', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...d, page: location.href }) })
+    .then(r => { if (!r.ok) throw new Error(r.status); okMsg.textContent = 'Thank you. The ZUFA team will call you shortly to fix a slot for your visit.'; okMsg.hidden = false; form.reset(); })
+    .catch(byEmail)
+    .finally(() => { go.disabled = false; });
 });
 
 /* ---------------- the sound of the land (synthesised: breeze through leaves, distant birds) ---------------- */

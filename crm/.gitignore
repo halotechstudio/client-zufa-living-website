@@ -1,0 +1,5 @@
+# Real secrets and the lead database never go to GitHub
+.env
+data/
+*.db
+*.db-*
