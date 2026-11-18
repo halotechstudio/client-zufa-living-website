@@ -60,7 +60,7 @@ The webhook needs a public `https://` address that is always on. We recommend **
 > Render's **free** plan is not suitable. It falls asleep, and every redeploy wipes the database. Use the **Starter** plan with a disk.
 
 1. Sign up at render.com, ideally with your GitHub account.
-2. Click **New → Web Service** and connect the `halotechstudio/zufaliving` repository.
+2. Click **New → Web Service** and connect the `halotechstudio/client-zufa-living-website` repository.
 3. Fill in:
    - **Name:** `zufa-crm`. Your address becomes `https://zufa-crm.onrender.com`, or similar.
    - **Root Directory:** `crm`
@@ -87,7 +87,7 @@ Every time you change a setting under **Environment**, Render restarts the CRM b
 3. Open the app. Go to **App settings → Basic**:
    - Copy the **App ID** into `META_APP_ID`.
    - Click **Show** next to **App secret** and copy it into `META_APP_SECRET`.
-   - Set **Privacy Policy URL** to the website's privacy page: `https://halotechstudio.github.io/zufaliving/privacy.html`, or the custom domain's `/privacy.html`.
+   - Set **Privacy Policy URL** to the website's privacy page: `https://halotechstudio.github.io/client-zufa-living-website/privacy.html`, or the custom domain's `/privacy.html`.
    - Set **Category** (e.g. Business and pages) and click **Save changes**.
 4. Make up a verify phrase (letters, numbers, dashes) and save it as `META_VERIFY_TOKEN`.
 5. Add these values to Render's **Environment** tab and save. The CRM restarts.
