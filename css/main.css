@@ -5,8 +5,8 @@
 /* Hallmark · waive 38iii · .big__l is the wordmark's second line at half size, the brand's own lockup · the ZUFA Living wordmark is the brand mark, set as the brochure sets it */
 /* Hallmark · dropped #premise · the hero's scroll cue linked there; the hero now carries two actions instead */
 /* Hallmark · waive 77 · the beat sits beside the plan drawing, which fills the other 56% of the held screen · the story pairs words with the drawing, step by step */
-@import url("./tokens.css");
-@import url("./base.css");
+@import url("./tokens.css?v=15");
+@import url("./base.css?v=15");
 
 @font-face{font-family:CG;font-weight:300;font-display:swap;src:url(../assets/fonts/cormorant-garamond-latin-300-normal.woff2) format("woff2")}
 @font-face{font-family:CG;font-weight:300;font-style:italic;font-display:swap;src:url(../assets/fonts/cormorant-garamond-latin-300-italic.woff2) format("woff2")}
